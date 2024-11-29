@@ -50,8 +50,8 @@ row_t *init_row() {
 }
 
 void clean_row(row_t *r) {
-  memset(r->_buffer, 0, sizeof(uint) * CAPACITY);
-  memset(r->details, 0, sizeof(uint) * CAPACITY);
+  memset(r->_buffer, EMPTY, sizeof(uint) * CAPACITY);
+  memset(r->details, EMPTY, sizeof(uint) * CAPACITY);
   r->count = 0;
 }
 
@@ -75,7 +75,8 @@ void parse_line(const char *s, row_t *r) {
     // pointer and will result in pointer to next empty slot in buffer
     b += !!*b;
     d[i] = b++;
-    *d[i] = s[i] == '.' ? EMPTY : SYMBOL;
+    if (s[i] != '.')
+      *d[i] = SYMBOL;
   }
 
   r->count = i;

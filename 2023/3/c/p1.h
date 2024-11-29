@@ -6,8 +6,8 @@
 #define CORRECT_ANSWER 521515
 
 #define CAPACITY 200
-#define SYMBOL -2
-#define EMPTY -1
+#define SYMBOL -1
+#define EMPTY 0
 
 /** Accepts pointer and a message. If pointer is NULL, exits a program */
 #define assert_ptr(ptr, message)                                               \
