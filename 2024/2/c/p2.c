@@ -3,61 +3,82 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#define TERMINATOR -1
-typedef enum { INCREASE, DECREASE, UNDEFINED } direction_t;
-
-int *parse_line(const char *s);
-int check_safety_dampener(int *nums);
-int check_safety(int *);
+#include <string.h>
 
 int main(int argc, char **argv) {
   int sum = 0;
   char buffer[50];
+  int *nums = alloc_nums();
 
   while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
-    int *nums = parse_line((char *)&buffer);
-    sum += check_safety_dampener(nums);
+    memset(nums, 0, sizeof(int) * CAPACITY);
+    parse_line((char *)&buffer, nums);
+    sum += is_safe_with_dampener(nums);
   }
 
-  // assert(sum == CORRECT_ANSWER);
+  free(nums);
+  nums = NULL;
+
+  assert(sum == CORRECT_ANSWER);
   printf("\n/2024/d2/P1 result: %d\n", sum);
 
   return 0;
 }
 
-int *parse_line(const char *s) {
-  int *nums = calloc(20, sizeof(int));
+int *alloc_nums() {
+  int *nums = calloc(CAPACITY, sizeof(int));
   if (nums == 0) {
     perror("Nums malloc");
     exit(1);
   }
-
-  int *cur = nums;
-
-  do {
-    if (isdigit(*s)) {
-      *cur = *cur * 10 + (*s - '0');
-    } else {
-      cur++;
-    }
-  } while (*(++s) != '\0' && *s != '\n');
-
-  *(++cur) = TERMINATOR;
-
   return nums;
 }
 
-int check_safety_dampener(int *nums) {
-  if (check_safety(nums)) {
+void parse_line(const char *s, int *nums) {
+  do {
+    if (isdigit(*s)) {
+      *nums = *nums * 10 + (*s - '0');
+    } else {
+      nums++;
+    }
+  } while (*(++s) != '\0' && *s != '\n');
+
+  *(++nums) = TERMINATOR;
+}
+
+int is_safe(int *nums) {
+  int diff = nums[1] - nums[0];
+  int prev_diff = diff;
+
+  for (int i = 1; nums[i] != TERMINATOR; i++) {
+    diff = nums[i] - nums[i - 1];
+
+    if (abs(diff) == 0 || abs(diff) > 3) {
+      return 0;
+    }
+
+    if (diff > 0 && prev_diff < 0) {
+      return 0;
+    }
+
+    if (diff < 0 && prev_diff > 0) {
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
+/** Simple bruteforce. Constructing new slice removing elements one by one,
+ * until it's 'safe' or we have no more variants */
+int is_safe_with_dampener(int *nums) {
+  // check base case first
+  if (is_safe(nums)) {
     return 1;
   }
 
-  int *n = calloc(20, sizeof(int));
-  if (nums == 0) {
-    perror("Nums malloc");
-    exit(1);
-  }
+  // allocate array on stack to hold intermidiate nums
+  int n[CAPACITY];
 
   for (int skip = 0; nums[skip] != TERMINATOR; skip++) {
     int c = 0;
@@ -72,35 +93,10 @@ int check_safety_dampener(int *nums) {
 
     n[c] = TERMINATOR;
 
-    if (check_safety(n)) {
+    if (is_safe(n)) {
       return 1;
     }
   }
 
   return 0;
-}
-
-int check_safety(int *nums) {
-  int direction = nums[1] - nums[0] > 0 ? INCREASE : DECREASE;
-
-  for (int i = 1; nums[i] != TERMINATOR; i++) {
-    int diff = nums[i] - nums[i - 1];
-
-    if (abs(diff) == 0 || abs(diff) > 3) {
-      // printf(">1\n");
-      return 0;
-    }
-
-    if (diff > 0 && direction == DECREASE) {
-      // printf(">2\n");
-      return 0;
-    }
-
-    if (diff < 0 && direction == INCREASE) {
-      // printf(">3\n");
-      return 0;
-    }
-  }
-
-  return 1;
 }
