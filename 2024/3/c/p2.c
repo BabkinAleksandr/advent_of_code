@@ -21,18 +21,20 @@ int main(int argc, char **argv) {
   int enabled = 1;
 
   while ((c = fgetc(stdin)) != EOF) {
-    // parse instruction
-    // TODO: simplify
+    // parse 'do()' instruction
     if (c == DO[j]) {
-      j++;
-      if (DO[j] == '\0') {
+      // matched
+      if (DO[++j] == '\0') {
         enabled = 1;
         j = 0;
       }
       continue;
-    } else if (DONT[j] == c) {
-      j++;
-      if (DONT[j] == '\0') {
+    }
+
+    // parse 'don't()' instruction
+    if (DONT[j] == c) {
+      // matched
+      if (DONT[++j] == '\0') {
         enabled = 0;
         j = 0;
       }
